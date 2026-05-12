@@ -9,6 +9,7 @@ import {
 	handleCreateEntry,
 	handleDeleteEntry,
 	handleGetEntry,
+	handleListCurrent,
 	handleListEntries,
 	handleUpdateEntry,
 } from "../../src/tools/entries.js";
@@ -133,6 +134,112 @@ describe("entry tool handlers", () => {
 
 			expect(client.deleteEntry).toHaveBeenCalledWith(ENTRY_FIXTURE.id);
 			expect(result).toContain(ENTRY_FIXTURE.id);
+		});
+	});
+
+	describe("handleListCurrent", () => {
+		it("uses day period by default", async () => {
+			const client = makeStubClient({
+				listEntries: vi
+					.fn()
+					.mockResolvedValue({ data: [], cursor: null, has_more: false }),
+			});
+
+			await handleListCurrent(client, {});
+
+			expect(client.listEntries).toHaveBeenCalledWith(
+				expect.objectContaining({ period: "day" }),
+			);
+		});
+
+		it("passes custom period", async () => {
+			const client = makeStubClient({
+				listEntries: vi
+					.fn()
+					.mockResolvedValue({ data: [], cursor: null, has_more: false }),
+			});
+
+			await handleListCurrent(client, { period: "week" });
+
+			expect(client.listEntries).toHaveBeenCalledWith(
+				expect.objectContaining({ period: "week" }),
+			);
+		});
+
+		it("combines today's entries and overdue entries", async () => {
+			const todayEntry = {
+				...ENTRY_FIXTURE,
+				id: "today-1",
+				title: "Today task",
+			};
+			const overdueEntry = {
+				...ENTRY_FIXTURE,
+				id: "overdue-1",
+				title: "Overdue task",
+			};
+
+			const client = makeStubClient({
+				listEntries: vi
+					.fn()
+					.mockResolvedValueOnce({
+						data: [todayEntry],
+						cursor: null,
+						has_more: false,
+					})
+					.mockResolvedValueOnce({
+						data: [overdueEntry],
+						cursor: null,
+						has_more: false,
+					}),
+			});
+
+			const result = await handleListCurrent(client, {});
+
+			expect(client.listEntries).toHaveBeenCalledTimes(2);
+			expect(result).toContain("Today task");
+			expect(result).toContain("Overdue task");
+			expect(result).toContain("Today");
+			expect(result).toContain("Overdue");
+		});
+
+		it("deduplicates entries appearing in both results", async () => {
+			const sharedEntry = {
+				...ENTRY_FIXTURE,
+				id: "shared-1",
+				title: "Shared",
+			};
+
+			const client = makeStubClient({
+				listEntries: vi
+					.fn()
+					.mockResolvedValueOnce({
+						data: [sharedEntry],
+						cursor: null,
+						has_more: false,
+					})
+					.mockResolvedValueOnce({
+						data: [sharedEntry],
+						cursor: null,
+						has_more: false,
+					}),
+			});
+
+			const result = await handleListCurrent(client, {});
+
+			const matches = result.match(/Shared/g);
+			expect(matches).toHaveLength(1);
+		});
+
+		it("returns message when no entries for today", async () => {
+			const client = makeStubClient({
+				listEntries: vi
+					.fn()
+					.mockResolvedValue({ data: [], cursor: null, has_more: false }),
+			});
+
+			const result = await handleListCurrent(client, {});
+
+			expect(result).toContain("Nothing for today.");
 		});
 	});
 });

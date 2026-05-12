@@ -123,6 +123,24 @@ export const deleteEntrySchema = {
 		.describe("Entry ID (UUID) to delete. Succeeds even if already deleted."),
 };
 
+export const listCurrentSchema = {
+	period: z
+		.enum(["day", "week", "month", "year"])
+		.optional()
+		.describe(
+			"Time scope. 'day' = today, 'week' = this week, 'month' = this month, 'year' = this year. Defaults to 'day'.",
+		),
+	expand: z
+		.union([
+			z.enum(["collection", "tags"]),
+			z.array(z.enum(["collection", "tags"])),
+		])
+		.optional()
+		.describe(
+			"Include related objects. 'collection' inlines the collection, 'tags' inlines tags. Pass an array for both.",
+		),
+};
+
 export const listCollectionsSchema = {
 	archived: z
 		.boolean()
@@ -191,6 +209,12 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
 		description:
 			"List tasks, notes, and events from Bullet. Two modes: (1) use 'view' for presets (inbox=unscheduled, overdue=past-due), or (2) use period+date for calendar queries. Each mode has different valid filters — see parameter descriptions. Returns paginated results; use cursor for next page.",
 		inputSchema: zodShapeToJsonSchema(listEntriesSchema),
+	},
+	{
+		name: "list_current",
+		description:
+			"Get scheduled entries for the current period plus any overdue items. Defaults to today. Use when the user asks what's on today, this week, this month, or wants a daily/weekly overview.",
+		inputSchema: zodShapeToJsonSchema(listCurrentSchema),
 	},
 	{
 		name: "create_entry",

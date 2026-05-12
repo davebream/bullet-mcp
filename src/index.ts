@@ -14,6 +14,7 @@ import {
 	getEntrySchema,
 	getTagSchema,
 	listCollectionsSchema,
+	listCurrentSchema,
 	listEntriesSchema,
 	listTagsSchema,
 	updateEntrySchema,
@@ -22,6 +23,7 @@ import {
 	handleCreateEntry,
 	handleDeleteEntry,
 	handleGetEntry,
+	handleListCurrent,
 	handleListEntries,
 	handleUpdateEntry,
 } from "./tools/entries.js";
@@ -66,6 +68,17 @@ server.registerTool(
 		annotations: { readOnlyHint: true },
 	},
 	(params) => withErrorHandling(() => handleListEntries(client, params)),
+);
+
+server.registerTool(
+	"list_current",
+	{
+		description:
+			"Get scheduled entries for the current period plus any overdue items. Defaults to today. Use when the user asks what's on today, this week, this month, or wants a daily/weekly overview.",
+		inputSchema: listCurrentSchema,
+		annotations: { readOnlyHint: true },
+	},
+	(params) => withErrorHandling(() => handleListCurrent(client, params)),
 );
 
 server.registerTool(

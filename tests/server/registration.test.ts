@@ -76,6 +76,7 @@ describe("MCP tool definitions align with OpenAPI spec", () => {
 	it("defines tools for all API resource groups", () => {
 		const toolNames = TOOL_DEFINITIONS.map((t) => t.name);
 		expect(toolNames).toContain("list_entries");
+		expect(toolNames).toContain("list_current");
 		expect(toolNames).toContain("create_entry");
 		expect(toolNames).toContain("get_entry");
 		expect(toolNames).toContain("update_entry");
