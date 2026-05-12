@@ -1,0 +1,54 @@
+{
+	"name": "@davebream/bullet-mcp",
+	"version": "1.0.0",
+	"description": "MCP server for the Bullet API (tasks, notes, events)",
+	"license": "MIT",
+	"author": "Dawid Leszczyński",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/davebream/bullet-mcp.git"
+	},
+	"keywords": [
+		"mcp",
+		"model-context-protocol",
+		"bullet",
+		"tasks",
+		"ai",
+		"claude"
+	],
+	"type": "module",
+	"main": "dist/index.js",
+	"bin": {
+		"bullet-mcp": "dist/index.js"
+	},
+	"files": ["dist", "spec/openapi.json", "LICENSE"],
+	"engines": {
+		"node": ">=18"
+	},
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"start": "node dist/index.js",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write .",
+		"typecheck": "tsc --noEmit",
+		"generate": "openapi-typescript spec/openapi.json -o src/client/types.generated.ts --default-non-nullable false",
+		"smoke": "bun run build && echo '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"smoke\",\"version\":\"0.1.0\"}}}' | BULLET_API_TOKEN=blt_smoke node dist/index.js 2>/dev/null | head -1"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.12.1",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@types/node": "^25.7.0",
+		"@vitest/coverage-v8": "^3.2.1",
+		"openapi-typescript": "^7.6.1",
+		"typescript": "^5.8.3",
+		"vitest": "^3.2.1"
+	}
+}

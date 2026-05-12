@@ -1,0 +1,8 @@
+[extend]
+useDefault = true
+
+[[rules]]
+id = "bullet-api-token"
+description = "Bullet API Token"
+regex = '''blt_[a-zA-Z0-9]{10,}'''
+keywords = ["blt_"]
