@@ -35,9 +35,19 @@
 					"updated_at"
 				],
 				"properties": {
-					"id": { "type": "string", "format": "uuid" },
-					"title": { "type": "string", "minLength": 1, "maxLength": 500 },
-					"kind": { "type": "string", "enum": ["task", "note", "event"] },
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"title": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 500
+					},
+					"kind": {
+						"type": "string",
+						"enum": ["task", "note", "event"]
+					},
 					"start": {
 						"type": ["string", "null"],
 						"description": "ISO date or datetime; null means inbox"
@@ -55,56 +65,106 @@
 						"type": "string",
 						"enum": ["not_started", "completed", "cancelled"]
 					},
-					"collection_id": { "type": ["string", "null"], "format": "uuid" },
+					"collection_id": {
+						"type": ["string", "null"],
+						"format": "uuid"
+					},
 					"tag_ids": {
 						"type": "array",
-						"items": { "type": "string", "format": "uuid" }
+						"items": {
+							"type": "string",
+							"format": "uuid"
+						}
 					},
-					"collection": { "$ref": "#/components/schemas/Collection" },
+					"collection": {
+						"$ref": "#/components/schemas/Collection"
+					},
 					"tags": {
 						"type": "array",
-						"items": { "$ref": "#/components/schemas/Tag" }
+						"items": {
+							"$ref": "#/components/schemas/Tag"
+						}
 					},
-					"created_at": { "type": "string", "format": "date-time" },
-					"updated_at": { "type": "string", "format": "date-time" }
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time"
+					}
 				}
 			},
 			"Collection": {
 				"type": "object",
 				"required": ["id", "title", "archived"],
 				"properties": {
-					"id": { "type": "string", "format": "uuid" },
-					"title": { "type": "string" },
-					"color": { "type": ["string", "null"] },
-					"parent_id": { "type": ["string", "null"], "format": "uuid" },
-					"archived": { "type": "boolean" }
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"title": {
+						"type": "string"
+					},
+					"color": {
+						"type": ["string", "null"]
+					},
+					"parent_id": {
+						"type": ["string", "null"],
+						"format": "uuid"
+					},
+					"archived": {
+						"type": "boolean"
+					}
 				}
 			},
 			"Tag": {
 				"type": "object",
 				"required": ["id", "label", "archived"],
 				"properties": {
-					"id": { "type": "string", "format": "uuid" },
-					"label": { "type": "string" },
-					"color": { "type": ["string", "null"] },
-					"archived": { "type": "boolean" }
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"label": {
+						"type": "string"
+					},
+					"color": {
+						"type": ["string", "null"]
+					},
+					"archived": {
+						"type": "boolean"
+					}
 				}
 			},
 			"PaginatedResponse": {
 				"type": "object",
 				"required": ["data", "has_more"],
 				"properties": {
-					"data": { "type": "array" },
-					"cursor": { "type": ["string", "null"] },
-					"has_more": { "type": "boolean" }
+					"data": {
+						"type": "array"
+					},
+					"cursor": {
+						"type": ["string", "null"]
+					},
+					"has_more": {
+						"type": "boolean"
+					}
 				}
 			},
 			"CreateEntryRequest": {
 				"type": "object",
 				"required": ["title", "kind"],
 				"properties": {
-					"title": { "type": "string", "minLength": 1, "maxLength": 500 },
-					"kind": { "type": "string", "enum": ["task", "note", "event"] },
+					"title": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 500
+					},
+					"kind": {
+						"type": "string",
+						"enum": ["task", "note", "event"]
+					},
 					"start": {
 						"type": "string",
 						"description": "ISO date or datetime; omit for inbox"
@@ -114,13 +174,21 @@
 						"enum": ["day", "week", "month", "year"],
 						"default": "day"
 					},
-					"importance": { "type": "integer", "minimum": 1, "maximum": 3 }
+					"importance": {
+						"type": "integer",
+						"minimum": 1,
+						"maximum": 3
+					}
 				}
 			},
 			"UpdateEntryRequest": {
 				"type": "object",
 				"properties": {
-					"title": { "type": "string", "minLength": 1, "maxLength": 500 }
+					"title": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 500
+					}
 				}
 			}
 		}
@@ -134,7 +202,10 @@
 					{
 						"name": "view",
 						"in": "query",
-						"schema": { "type": "string", "enum": ["inbox", "overdue"] }
+						"schema": {
+							"type": "string",
+							"enum": ["inbox", "overdue"]
+						}
 					},
 					{
 						"name": "period",
@@ -148,7 +219,9 @@
 					{
 						"name": "date",
 						"in": "query",
-						"schema": { "type": "string" },
+						"schema": {
+							"type": "string"
+						},
 						"description": "YYYY-MM-DD, YYYY-MM, or YYYY"
 					},
 					{
@@ -156,8 +229,15 @@
 						"in": "query",
 						"schema": {
 							"oneOf": [
-								{ "type": "string" },
-								{ "type": "array", "items": { "type": "string" } }
+								{
+									"type": "string"
+								},
+								{
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
 							],
 							"enum": ["not_started", "completed", "cancelled"]
 						}
@@ -167,8 +247,15 @@
 						"in": "query",
 						"schema": {
 							"oneOf": [
-								{ "type": "string" },
-								{ "type": "array", "items": { "type": "string" } }
+								{
+									"type": "string"
+								},
+								{
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
 							],
 							"enum": ["task", "note", "event"]
 						}
@@ -178,8 +265,15 @@
 						"in": "query",
 						"schema": {
 							"oneOf": [
-								{ "type": "string" },
-								{ "type": "array", "items": { "type": "string" } }
+								{
+									"type": "string"
+								},
+								{
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
 							]
 						},
 						"description": "UUID(s)"
@@ -189,8 +283,15 @@
 						"in": "query",
 						"schema": {
 							"oneOf": [
-								{ "type": "string" },
-								{ "type": "array", "items": { "type": "string" } }
+								{
+									"type": "string"
+								},
+								{
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
 							]
 						},
 						"description": "UUID(s)"
@@ -205,14 +306,27 @@
 							"default": 50
 						}
 					},
-					{ "name": "cursor", "in": "query", "schema": { "type": "string" } },
+					{
+						"name": "cursor",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					},
 					{
 						"name": "expand",
 						"in": "query",
 						"schema": {
 							"oneOf": [
-								{ "type": "string" },
-								{ "type": "array", "items": { "type": "string" } }
+								{
+									"type": "string"
+								},
+								{
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
 							],
 							"enum": ["collection", "tags"]
 						}
@@ -225,12 +339,16 @@
 							"application/json": {
 								"schema": {
 									"allOf": [
-										{ "$ref": "#/components/schemas/PaginatedResponse" },
+										{
+											"$ref": "#/components/schemas/PaginatedResponse"
+										},
 										{
 											"properties": {
 												"data": {
 													"type": "array",
-													"items": { "$ref": "#/components/schemas/Entry" }
+													"items": {
+														"$ref": "#/components/schemas/Entry"
+													}
 												}
 											}
 										}
@@ -248,7 +366,9 @@
 					"required": true,
 					"content": {
 						"application/json": {
-							"schema": { "$ref": "#/components/schemas/CreateEntryRequest" }
+							"schema": {
+								"$ref": "#/components/schemas/CreateEntryRequest"
+							}
 						}
 					}
 				},
@@ -257,7 +377,9 @@
 						"description": "Created entry",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/Entry" }
+								"schema": {
+									"$ref": "#/components/schemas/Entry"
+								}
 							}
 						}
 					}
@@ -273,15 +395,25 @@
 						"name": "id",
 						"in": "path",
 						"required": true,
-						"schema": { "type": "string", "format": "uuid" }
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
 					},
 					{
 						"name": "expand",
 						"in": "query",
 						"schema": {
 							"oneOf": [
-								{ "type": "string" },
-								{ "type": "array", "items": { "type": "string" } }
+								{
+									"type": "string"
+								},
+								{
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
 							],
 							"enum": ["collection", "tags"]
 						}
@@ -292,7 +424,9 @@
 						"description": "Entry object",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/Entry" }
+								"schema": {
+									"$ref": "#/components/schemas/Entry"
+								}
 							}
 						}
 					}
@@ -306,14 +440,19 @@
 						"name": "id",
 						"in": "path",
 						"required": true,
-						"schema": { "type": "string", "format": "uuid" }
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
 					}
 				],
 				"requestBody": {
 					"required": true,
 					"content": {
 						"application/json": {
-							"schema": { "$ref": "#/components/schemas/UpdateEntryRequest" }
+							"schema": {
+								"$ref": "#/components/schemas/UpdateEntryRequest"
+							}
 						}
 					}
 				},
@@ -322,7 +461,9 @@
 						"description": "Updated entry",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/Entry" }
+								"schema": {
+									"$ref": "#/components/schemas/Entry"
+								}
 							}
 						}
 					}
@@ -336,7 +477,10 @@
 						"name": "id",
 						"in": "path",
 						"required": true,
-						"schema": { "type": "string", "format": "uuid" }
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
 					}
 				],
 				"responses": {
@@ -351,16 +495,30 @@
 				"operationId": "listCollections",
 				"summary": "List all collections",
 				"parameters": [
-					{ "name": "archived", "in": "query", "schema": { "type": "boolean" } }
+					{
+						"name": "archived",
+						"in": "query",
+						"schema": {
+							"type": "boolean"
+						}
+					}
 				],
 				"responses": {
 					"200": {
-						"description": "Array of collections",
+						"description": "Wrapped array of collections",
 						"content": {
 							"application/json": {
 								"schema": {
-									"type": "array",
-									"items": { "$ref": "#/components/schemas/Collection" }
+									"type": "object",
+									"required": ["data"],
+									"properties": {
+										"data": {
+											"type": "array",
+											"items": {
+												"$ref": "#/components/schemas/Collection"
+											}
+										}
+									}
 								}
 							}
 						}
@@ -377,7 +535,10 @@
 						"name": "id",
 						"in": "path",
 						"required": true,
-						"schema": { "type": "string", "format": "uuid" }
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
 					}
 				],
 				"responses": {
@@ -385,7 +546,9 @@
 						"description": "Collection object",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/Collection" }
+								"schema": {
+									"$ref": "#/components/schemas/Collection"
+								}
 							}
 						}
 					}
@@ -397,16 +560,30 @@
 				"operationId": "listTags",
 				"summary": "List all tags",
 				"parameters": [
-					{ "name": "archived", "in": "query", "schema": { "type": "boolean" } }
+					{
+						"name": "archived",
+						"in": "query",
+						"schema": {
+							"type": "boolean"
+						}
+					}
 				],
 				"responses": {
 					"200": {
-						"description": "Array of tags",
+						"description": "Wrapped array of tags",
 						"content": {
 							"application/json": {
 								"schema": {
-									"type": "array",
-									"items": { "$ref": "#/components/schemas/Tag" }
+									"type": "object",
+									"required": ["data"],
+									"properties": {
+										"data": {
+											"type": "array",
+											"items": {
+												"$ref": "#/components/schemas/Tag"
+											}
+										}
+									}
 								}
 							}
 						}
@@ -423,7 +600,10 @@
 						"name": "id",
 						"in": "path",
 						"required": true,
-						"schema": { "type": "string", "format": "uuid" }
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
 					}
 				],
 				"responses": {
@@ -431,7 +611,9 @@
 						"description": "Tag object",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/Tag" }
+								"schema": {
+									"$ref": "#/components/schemas/Tag"
+								}
 							}
 						}
 					}

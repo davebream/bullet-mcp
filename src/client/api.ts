@@ -45,12 +45,16 @@ export class BulletClient {
 			}
 		}
 
+		const headers: Record<string, string> = {
+			Authorization: `Bearer ${this.token}`,
+		};
+		if (options?.body) {
+			headers["Content-Type"] = "application/json";
+		}
+
 		const response = await fetch(url, {
 			method,
-			headers: {
-				Authorization: `Bearer ${this.token}`,
-				"Content-Type": "application/json",
-			},
+			headers,
 			body: options?.body ? JSON.stringify(options.body) : undefined,
 		});
 
@@ -90,9 +94,12 @@ export class BulletClient {
 	}
 
 	async listCollections(params?: ListCollectionsParams): Promise<Collection[]> {
-		return this.request("GET", "/collections", {
-			params: params as Record<string, unknown>,
-		});
+		const result = await this.request<{ data: Collection[] }>(
+			"GET",
+			"/collections",
+			{ params: params as Record<string, unknown> },
+		);
+		return result.data;
 	}
 
 	async getCollection(id: string): Promise<Collection> {
@@ -100,9 +107,10 @@ export class BulletClient {
 	}
 
 	async listTags(params?: ListTagsParams): Promise<Tag[]> {
-		return this.request("GET", "/tags", {
+		const result = await this.request<{ data: Tag[] }>("GET", "/tags", {
 			params: params as Record<string, unknown>,
 		});
+		return result.data;
 	}
 
 	async getTag(id: string): Promise<Tag> {

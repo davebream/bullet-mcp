@@ -193,7 +193,7 @@ describe("BulletClient", () => {
 	describe("listCollections", () => {
 		it("GETs /collections", async () => {
 			const { getUrl } = mockFetch([
-				{ status: 200, body: [COLLECTION_FIXTURE] },
+				{ status: 200, body: { data: [COLLECTION_FIXTURE] } },
 			]);
 			const client = new BulletClient(TOKEN);
 
@@ -204,7 +204,7 @@ describe("BulletClient", () => {
 		});
 
 		it("passes archived filter", async () => {
-			const { getUrl } = mockFetch([{ status: 200, body: [] }]);
+			const { getUrl } = mockFetch([{ status: 200, body: { data: [] } }]);
 			const client = new BulletClient(TOKEN);
 
 			await client.listCollections({ archived: true });
@@ -229,7 +229,9 @@ describe("BulletClient", () => {
 
 	describe("listTags", () => {
 		it("GETs /tags", async () => {
-			const { getUrl } = mockFetch([{ status: 200, body: [TAG_FIXTURE] }]);
+			const { getUrl } = mockFetch([
+				{ status: 200, body: { data: [TAG_FIXTURE] } },
+			]);
 			const client = new BulletClient(TOKEN);
 
 			const result = await client.listTags();
@@ -239,7 +241,7 @@ describe("BulletClient", () => {
 		});
 
 		it("passes archived filter", async () => {
-			const { getUrl } = mockFetch([{ status: 200, body: [] }]);
+			const { getUrl } = mockFetch([{ status: 200, body: { data: [] } }]);
 			const client = new BulletClient(TOKEN);
 
 			await client.listTags({ archived: false });
