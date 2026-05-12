@@ -1,0 +1,442 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "Bullet API",
+		"version": "1.0.0",
+		"description": "REST API for managing entries (tasks, notes, events) with collections and tags."
+	},
+	"servers": [
+		{
+			"url": "https://api.bullet.to/v1"
+		}
+	],
+	"security": [
+		{
+			"bearerAuth": []
+		}
+	],
+	"components": {
+		"securitySchemes": {
+			"bearerAuth": {
+				"type": "http",
+				"scheme": "bearer",
+				"description": "Bearer token with blt_ prefix"
+			}
+		},
+		"schemas": {
+			"Entry": {
+				"type": "object",
+				"required": [
+					"id",
+					"title",
+					"kind",
+					"status",
+					"created_at",
+					"updated_at"
+				],
+				"properties": {
+					"id": { "type": "string", "format": "uuid" },
+					"title": { "type": "string", "minLength": 1, "maxLength": 500 },
+					"kind": { "type": "string", "enum": ["task", "note", "event"] },
+					"start": {
+						"type": ["string", "null"],
+						"description": "ISO date or datetime; null means inbox"
+					},
+					"period": {
+						"type": "string",
+						"enum": ["day", "week", "month", "year"]
+					},
+					"importance": {
+						"type": ["integer", "null"],
+						"minimum": 1,
+						"maximum": 3
+					},
+					"status": {
+						"type": "string",
+						"enum": ["not_started", "completed", "cancelled"]
+					},
+					"collection_id": { "type": ["string", "null"], "format": "uuid" },
+					"tag_ids": {
+						"type": "array",
+						"items": { "type": "string", "format": "uuid" }
+					},
+					"collection": { "$ref": "#/components/schemas/Collection" },
+					"tags": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/Tag" }
+					},
+					"created_at": { "type": "string", "format": "date-time" },
+					"updated_at": { "type": "string", "format": "date-time" }
+				}
+			},
+			"Collection": {
+				"type": "object",
+				"required": ["id", "title", "archived"],
+				"properties": {
+					"id": { "type": "string", "format": "uuid" },
+					"title": { "type": "string" },
+					"color": { "type": ["string", "null"] },
+					"parent_id": { "type": ["string", "null"], "format": "uuid" },
+					"archived": { "type": "boolean" }
+				}
+			},
+			"Tag": {
+				"type": "object",
+				"required": ["id", "label", "archived"],
+				"properties": {
+					"id": { "type": "string", "format": "uuid" },
+					"label": { "type": "string" },
+					"color": { "type": ["string", "null"] },
+					"archived": { "type": "boolean" }
+				}
+			},
+			"PaginatedResponse": {
+				"type": "object",
+				"required": ["data", "has_more"],
+				"properties": {
+					"data": { "type": "array" },
+					"cursor": { "type": ["string", "null"] },
+					"has_more": { "type": "boolean" }
+				}
+			},
+			"CreateEntryRequest": {
+				"type": "object",
+				"required": ["title", "kind"],
+				"properties": {
+					"title": { "type": "string", "minLength": 1, "maxLength": 500 },
+					"kind": { "type": "string", "enum": ["task", "note", "event"] },
+					"start": {
+						"type": "string",
+						"description": "ISO date or datetime; omit for inbox"
+					},
+					"period": {
+						"type": "string",
+						"enum": ["day", "week", "month", "year"],
+						"default": "day"
+					},
+					"importance": { "type": "integer", "minimum": 1, "maximum": 3 }
+				}
+			},
+			"UpdateEntryRequest": {
+				"type": "object",
+				"properties": {
+					"title": { "type": "string", "minLength": 1, "maxLength": 500 }
+				}
+			}
+		}
+	},
+	"paths": {
+		"/entries": {
+			"get": {
+				"operationId": "listEntries",
+				"summary": "List entries with optional filtering and pagination",
+				"parameters": [
+					{
+						"name": "view",
+						"in": "query",
+						"schema": { "type": "string", "enum": ["inbox", "overdue"] }
+					},
+					{
+						"name": "period",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"enum": ["day", "week", "month", "year"]
+						},
+						"description": "Valid only without views"
+					},
+					{
+						"name": "date",
+						"in": "query",
+						"schema": { "type": "string" },
+						"description": "YYYY-MM-DD, YYYY-MM, or YYYY"
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"schema": {
+							"oneOf": [
+								{ "type": "string" },
+								{ "type": "array", "items": { "type": "string" } }
+							],
+							"enum": ["not_started", "completed", "cancelled"]
+						}
+					},
+					{
+						"name": "kind",
+						"in": "query",
+						"schema": {
+							"oneOf": [
+								{ "type": "string" },
+								{ "type": "array", "items": { "type": "string" } }
+							],
+							"enum": ["task", "note", "event"]
+						}
+					},
+					{
+						"name": "collection",
+						"in": "query",
+						"schema": {
+							"oneOf": [
+								{ "type": "string" },
+								{ "type": "array", "items": { "type": "string" } }
+							]
+						},
+						"description": "UUID(s)"
+					},
+					{
+						"name": "tag",
+						"in": "query",
+						"schema": {
+							"oneOf": [
+								{ "type": "string" },
+								{ "type": "array", "items": { "type": "string" } }
+							]
+						},
+						"description": "UUID(s)"
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"schema": {
+							"type": "integer",
+							"minimum": 1,
+							"maximum": 200,
+							"default": 50
+						}
+					},
+					{ "name": "cursor", "in": "query", "schema": { "type": "string" } },
+					{
+						"name": "expand",
+						"in": "query",
+						"schema": {
+							"oneOf": [
+								{ "type": "string" },
+								{ "type": "array", "items": { "type": "string" } }
+							],
+							"enum": ["collection", "tags"]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Paginated list of entries",
+						"content": {
+							"application/json": {
+								"schema": {
+									"allOf": [
+										{ "$ref": "#/components/schemas/PaginatedResponse" },
+										{
+											"properties": {
+												"data": {
+													"type": "array",
+													"items": { "$ref": "#/components/schemas/Entry" }
+												}
+											}
+										}
+									]
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"operationId": "createEntry",
+				"summary": "Create a new entry",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/CreateEntryRequest" }
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Created entry",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/Entry" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/entries/{id}": {
+			"get": {
+				"operationId": "getEntry",
+				"summary": "Retrieve a single entry",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					},
+					{
+						"name": "expand",
+						"in": "query",
+						"schema": {
+							"oneOf": [
+								{ "type": "string" },
+								{ "type": "array", "items": { "type": "string" } }
+							],
+							"enum": ["collection", "tags"]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Entry object",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/Entry" }
+							}
+						}
+					}
+				}
+			},
+			"patch": {
+				"operationId": "updateEntry",
+				"summary": "Update an entry",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/UpdateEntryRequest" }
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Updated entry",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/Entry" }
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "deleteEntry",
+				"summary": "Soft-delete an entry",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Deleted (succeeds even if already deleted)"
+					}
+				}
+			}
+		},
+		"/collections": {
+			"get": {
+				"operationId": "listCollections",
+				"summary": "List all collections",
+				"parameters": [
+					{ "name": "archived", "in": "query", "schema": { "type": "boolean" } }
+				],
+				"responses": {
+					"200": {
+						"description": "Array of collections",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": { "$ref": "#/components/schemas/Collection" }
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/collections/{id}": {
+			"get": {
+				"operationId": "getCollection",
+				"summary": "Retrieve a single collection",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Collection object",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/Collection" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/tags": {
+			"get": {
+				"operationId": "listTags",
+				"summary": "List all tags",
+				"parameters": [
+					{ "name": "archived", "in": "query", "schema": { "type": "boolean" } }
+				],
+				"responses": {
+					"200": {
+						"description": "Array of tags",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": { "$ref": "#/components/schemas/Tag" }
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/tags/{id}": {
+			"get": {
+				"operationId": "getTag",
+				"summary": "Retrieve a single tag",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Tag object",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/Tag" }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
