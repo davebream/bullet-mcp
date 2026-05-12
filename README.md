@@ -49,7 +49,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 ### Claude Code
 
 ```bash
-claude mcp add -e BULLET_API_TOKEN=blt_your_token_here bullet -- npx -y @davebream/bullet-mcp
+claude mcp add bullet -e BULLET_API_TOKEN=blt_your_token_here -- npx -y @davebream/bullet-mcp
 ```
 
 ### VS Code
