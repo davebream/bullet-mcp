@@ -1,0 +1,60 @@
+name: API version check
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 6 AM UTC daily (8 AM CEST)
+  workflow_dispatch: # manual trigger
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: Check Bullet API version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch upstream API version
+        id: upstream
+        run: |
+          VERSION=$(curl -sf https://api.bullet.to/docs/openapi.json | jq -r '.info.version')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Read local spec version
+        id: local
+        run: |
+          VERSION=$(jq -r '.info.version' spec/openapi.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Compare and open issue if outdated
+        if: steps.upstream.outputs.version != steps.local.outputs.version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPSTREAM: ${{ steps.upstream.outputs.version }}
+          LOCAL: ${{ steps.local.outputs.version }}
+        run: |
+          EXISTING=$(gh issue list --label "api-update" --state open --json number --jq 'length')
+          if [ "$EXISTING" -gt 0 ]; then
+            echo "Open issue already exists, skipping."
+            exit 0
+          fi
+          gh issue create \
+            --title "Bullet API updated to v${UPSTREAM}" \
+            --label "api-update" \
+            --body "$(cat <<EOF
+          The upstream Bullet API version has changed.
+
+          - **Upstream version**: \`${UPSTREAM}\`
+          - **Local spec version**: \`${LOCAL}\`
+
+          ## Action required
+
+          1. Fetch the latest spec: \`curl -sf https://api.bullet.to/docs/openapi.json > spec/openapi.json\`
+          2. Regenerate types: \`bun run generate\`
+          3. Review breaking changes and update Zod schemas in \`src/tools/definitions.ts\`
+          4. Update tool handlers if endpoints changed
+          5. Run \`bun run test\` — registration tests will catch schema drift
+          EOF
+          )"
