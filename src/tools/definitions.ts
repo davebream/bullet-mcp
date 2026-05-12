@@ -5,100 +5,150 @@ export const listEntriesSchema = {
 		.enum(["inbox", "overdue"])
 		.optional()
 		.describe(
-			"Filter by view. 'inbox' shows unscheduled entries, 'overdue' shows past-due tasks.",
+			"Preset view. 'inbox' = unscheduled entries (supports status, kind filters). 'overdue' = past-due tasks (supports collection, tag filters). Omit to query by period/date instead.",
 		),
 	period: z
 		.enum(["day", "week", "month", "year"])
 		.optional()
-		.describe("Time period granularity. Valid only without a view."),
+		.describe(
+			"Time granularity for date-based queries. Cannot be used with a view. If date is set, period controls its scope (day=single day, week=that week, etc). Defaults date to now if omitted.",
+		),
 	date: z
 		.string()
 		.optional()
-		.describe("Date filter in YYYY-MM-DD, YYYY-MM, or YYYY format."),
+		.describe(
+			"Anchor date for period queries. Format must match period: YYYY-MM-DD for day/week, YYYY-MM for month, YYYY for year. Defaults to current date if omitted. Cannot be used with a view.",
+		),
 	status: z
-		.enum(["not_started", "completed", "cancelled"])
+		.union([
+			z.enum(["not_started", "completed", "cancelled"]),
+			z.array(z.enum(["not_started", "completed", "cancelled"])),
+		])
 		.optional()
-		.describe("Filter by entry status. Valid with inbox view only."),
+		.describe(
+			"Filter by task status. Pass an array to match any. Works with view=inbox or without a view. Not valid with view=overdue.",
+		),
 	kind: z
-		.enum(["task", "note", "event"])
+		.union([
+			z.enum(["task", "note", "event"]),
+			z.array(z.enum(["task", "note", "event"])),
+		])
 		.optional()
-		.describe("Filter by entry kind. Valid with inbox view only."),
+		.describe(
+			"Filter by entry type. Pass an array to match any. Works with view=inbox or without a view. Not valid with view=overdue.",
+		),
 	collection: z
-		.string()
+		.union([z.string(), z.array(z.string())])
 		.optional()
-		.describe("Filter by collection UUID. Valid with overdue view only."),
+		.describe(
+			"Filter by collection ID. Pass an array to match any. Works with view=overdue or without a view. Not valid with view=inbox. Use list_collections to find IDs.",
+		),
 	tag: z
-		.string()
+		.union([z.string(), z.array(z.string())])
 		.optional()
-		.describe("Filter by tag UUID. Valid with overdue view only."),
+		.describe(
+			"Filter by tag ID. Pass an array to match any. Works with view=overdue or without a view. Not valid with view=inbox. Use list_tags to find IDs.",
+		),
 	limit: z
 		.number()
 		.min(1)
 		.max(200)
 		.optional()
-		.describe("Number of results to return (1-200). Default 50."),
+		.describe("Max entries to return (1-200, default 50)."),
 	cursor: z
 		.string()
 		.optional()
-		.describe("Pagination cursor from a previous response."),
+		.describe(
+			"Pagination cursor from a previous list_entries response. Pass this to get the next page.",
+		),
 	expand: z
-		.enum(["collection", "tags"])
+		.union([
+			z.enum(["collection", "tags"]),
+			z.array(z.enum(["collection", "tags"])),
+		])
 		.optional()
-		.describe("Expand related objects inline."),
+		.describe(
+			"Include related objects in the response. 'collection' inlines the collection object, 'tags' inlines tag objects. Pass an array for both.",
+		),
 };
 
 export const createEntrySchema = {
 	title: z.string().min(1).max(500).describe("Entry title (1-500 characters)."),
 	kind: z
 		.enum(["task", "note", "event"])
-		.describe("The type of entry to create."),
+		.describe("Entry type: task (has status), note (no status), or event."),
 	start: z
 		.string()
 		.optional()
-		.describe("ISO date or datetime for scheduling. Omit to place in inbox."),
+		.describe(
+			"When this entry is scheduled. Omit to place in inbox. Accepts: YYYY-MM-DD (date), YYYY-MM (month), YYYY (year), or ISO 8601 datetime with timezone for events. The period parameter controls how date-only values are interpreted.",
+		),
 	period: z
 		.enum(["day", "week", "month", "year"])
 		.optional()
-		.describe("Time period granularity. Defaults to 'day'."),
+		.describe(
+			"Schedule granularity. Controls how a date-only 'start' is interpreted: 'day' = that specific day, 'week' = the week containing that date, etc. Defaults to 'day'. Only meaningful when 'start' is set.",
+		),
 	importance: z
 		.number()
 		.min(1)
 		.max(3)
 		.optional()
-		.describe("Importance level (1-3)."),
+		.describe(
+			"Priority level: 1 = low, 2 = medium, 3 = high. Omit for default.",
+		),
 };
 
 export const getEntrySchema = {
-	id: z.string().describe("Entry UUID."),
+	id: z.string().describe("Entry ID (UUID). Get IDs from list_entries."),
 	expand: z
-		.enum(["collection", "tags"])
+		.union([
+			z.enum(["collection", "tags"]),
+			z.array(z.enum(["collection", "tags"])),
+		])
 		.optional()
-		.describe("Expand related objects inline."),
+		.describe(
+			"Include related objects. 'collection' inlines the collection, 'tags' inlines tags. Pass an array for both.",
+		),
 };
 
 export const updateEntrySchema = {
-	id: z.string().describe("Entry UUID."),
+	id: z.string().describe("Entry ID (UUID) to update."),
 	title: z.string().min(1).max(500).describe("New title (1-500 characters)."),
 };
 
 export const deleteEntrySchema = {
-	id: z.string().describe("Entry UUID."),
+	id: z
+		.string()
+		.describe("Entry ID (UUID) to delete. Succeeds even if already deleted."),
 };
 
 export const listCollectionsSchema = {
-	archived: z.boolean().optional().describe("Filter by archived status."),
+	archived: z
+		.boolean()
+		.optional()
+		.describe(
+			"Filter by archived status. true = only archived, false = only active, omit = all.",
+		),
 };
 
 export const getCollectionSchema = {
-	id: z.string().describe("Collection UUID."),
+	id: z
+		.string()
+		.describe("Collection ID (UUID). Get IDs from list_collections."),
 };
 
 export const listTagsSchema = {
-	archived: z.boolean().optional().describe("Filter by archived status."),
+	archived: z
+		.boolean()
+		.optional()
+		.describe(
+			"Filter by archived status. true = only archived, false = only active, omit = all.",
+		),
 };
 
 export const getTagSchema = {
-	id: z.string().describe("Tag UUID."),
+	id: z.string().describe("Tag ID (UUID). Get IDs from list_tags."),
 };
 
 export interface ToolDefinition {
@@ -139,18 +189,19 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
 	{
 		name: "list_entries",
 		description:
-			"List entries (tasks, notes, events) with filtering by view, period, date, status, kind, collection, or tag. Supports cursor-based pagination.",
+			"List tasks, notes, and events from Bullet. Two modes: (1) use 'view' for presets (inbox=unscheduled, overdue=past-due), or (2) use period+date for calendar queries. Each mode has different valid filters — see parameter descriptions. Returns paginated results; use cursor for next page.",
 		inputSchema: zodShapeToJsonSchema(listEntriesSchema),
 	},
 	{
 		name: "create_entry",
 		description:
-			"Create a new entry (task, note, or event). Omit 'start' to place it in the inbox.",
+			"Create a task, note, or event in Bullet. Set 'start' to schedule it on a date/time, or omit 'start' to put it in the inbox. Tasks track completion status, notes don't, events support timezone-aware datetimes.",
 		inputSchema: zodShapeToJsonSchema(createEntrySchema),
 	},
 	{
 		name: "get_entry",
-		description: "Retrieve a single entry by its UUID.",
+		description:
+			"Get a single entry by ID with full details. Use expand to include the collection and/or tags inline instead of just IDs.",
 		inputSchema: zodShapeToJsonSchema(getEntrySchema),
 	},
 	{
@@ -161,28 +212,29 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
 	{
 		name: "delete_entry",
 		description:
-			"Soft-delete an entry. Succeeds even if the entry is already deleted.",
+			"Soft-delete an entry. Idempotent — succeeds even if already deleted.",
 		inputSchema: zodShapeToJsonSchema(deleteEntrySchema),
 	},
 	{
 		name: "list_collections",
 		description:
-			"List all collections, optionally filtering by archived status.",
+			"List all collections (folders for organizing entries). Returns IDs needed for filtering entries by collection.",
 		inputSchema: zodShapeToJsonSchema(listCollectionsSchema),
 	},
 	{
 		name: "get_collection",
-		description: "Retrieve a single collection by its UUID.",
+		description: "Get a single collection by ID.",
 		inputSchema: zodShapeToJsonSchema(getCollectionSchema),
 	},
 	{
 		name: "list_tags",
-		description: "List all tags, optionally filtering by archived status.",
+		description:
+			"List all tags (labels for categorizing entries). Returns IDs needed for filtering entries by tag.",
 		inputSchema: zodShapeToJsonSchema(listTagsSchema),
 	},
 	{
 		name: "get_tag",
-		description: "Retrieve a single tag by its UUID.",
+		description: "Get a single tag by ID.",
 		inputSchema: zodShapeToJsonSchema(getTagSchema),
 	},
 ];

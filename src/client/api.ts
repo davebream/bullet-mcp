@@ -79,7 +79,10 @@ export class BulletClient {
 		return this.request("POST", "/entries", { body: params });
 	}
 
-	async getEntry(id: string, expand?: "collection" | "tags"): Promise<Entry> {
+	async getEntry(
+		id: string,
+		expand?: "collection" | "tags" | ("collection" | "tags")[],
+	): Promise<Entry> {
 		return this.request("GET", `/entries/${id}`, {
 			params: expand ? { expand } : undefined,
 		});

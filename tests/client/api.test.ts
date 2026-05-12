@@ -76,8 +76,7 @@ describe("BulletClient", () => {
 			await client.listEntries({
 				status: ["not_started", "completed"],
 				kind: ["task", "note"],
-				// biome-ignore lint/suspicious/noExplicitAny: testing array serialization beyond typed params
-			} as any);
+			});
 
 			const params = getUrl(0).searchParams;
 			expect(params.getAll("status")).toEqual(["not_started", "completed"]);
@@ -155,6 +154,16 @@ describe("BulletClient", () => {
 			await client.getEntry(ENTRY_FIXTURE.id, "collection");
 
 			expect(getUrl(0).searchParams.get("expand")).toBe("collection");
+		});
+
+		it("passes expand as array of repeated params", async () => {
+			const { getUrl } = mockFetch([{ status: 200, body: ENTRY_FIXTURE }]);
+			const client = new BulletClient(TOKEN);
+
+			await client.getEntry(ENTRY_FIXTURE.id, ["collection", "tags"]);
+
+			const params = getUrl(0).searchParams;
+			expect(params.getAll("expand")).toEqual(["collection", "tags"]);
 		});
 	});
 

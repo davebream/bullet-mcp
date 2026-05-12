@@ -61,8 +61,9 @@ server.registerTool(
 	"list_entries",
 	{
 		description:
-			"List entries (tasks, notes, events) with filtering by view, period, date, status, kind, collection, or tag. Supports cursor-based pagination.",
+			"List tasks, notes, and events from Bullet. Two modes: (1) use 'view' for presets (inbox=unscheduled, overdue=past-due), or (2) use period+date for calendar queries. Each mode has different valid filters — see parameter descriptions. Returns paginated results; use cursor for next page.",
 		inputSchema: listEntriesSchema,
+		annotations: { readOnlyHint: true },
 	},
 	(params) => withErrorHandling(() => handleListEntries(client, params)),
 );
@@ -71,7 +72,7 @@ server.registerTool(
 	"create_entry",
 	{
 		description:
-			"Create a new entry (task, note, or event). Omit 'start' to place it in the inbox.",
+			"Create a task, note, or event in Bullet. Set 'start' to schedule it on a date/time, or omit 'start' to put it in the inbox. Tasks track completion status, notes don't, events support timezone-aware datetimes.",
 		inputSchema: createEntrySchema,
 	},
 	(params) => withErrorHandling(() => handleCreateEntry(client, params)),
@@ -80,8 +81,10 @@ server.registerTool(
 server.registerTool(
 	"get_entry",
 	{
-		description: "Retrieve a single entry by its UUID.",
+		description:
+			"Get a single entry by ID with full details. Use expand to include the collection and/or tags inline instead of just IDs.",
 		inputSchema: getEntrySchema,
+		annotations: { readOnlyHint: true },
 	},
 	(params) => withErrorHandling(() => handleGetEntry(client, params)),
 );
@@ -91,6 +94,7 @@ server.registerTool(
 	{
 		description: "Update an entry's title.",
 		inputSchema: updateEntrySchema,
+		annotations: { idempotentHint: true },
 	},
 	(params) => withErrorHandling(() => handleUpdateEntry(client, params)),
 );
@@ -99,9 +103,9 @@ server.registerTool(
 	"delete_entry",
 	{
 		description:
-			"Soft-delete an entry. Succeeds even if the entry is already deleted.",
+			"Soft-delete an entry. Idempotent — succeeds even if already deleted.",
 		inputSchema: deleteEntrySchema,
-		annotations: { destructiveHint: true },
+		annotations: { destructiveHint: true, idempotentHint: true },
 	},
 	(params) => withErrorHandling(() => handleDeleteEntry(client, params)),
 );
@@ -110,7 +114,7 @@ server.registerTool(
 	"list_collections",
 	{
 		description:
-			"List all collections, optionally filtering by archived status.",
+			"List all collections (folders for organizing entries). Returns IDs needed for filtering entries by collection.",
 		inputSchema: listCollectionsSchema,
 		annotations: { readOnlyHint: true },
 	},
@@ -120,7 +124,7 @@ server.registerTool(
 server.registerTool(
 	"get_collection",
 	{
-		description: "Retrieve a single collection by its UUID.",
+		description: "Get a single collection by ID.",
 		inputSchema: getCollectionSchema,
 		annotations: { readOnlyHint: true },
 	},
@@ -130,7 +134,8 @@ server.registerTool(
 server.registerTool(
 	"list_tags",
 	{
-		description: "List all tags, optionally filtering by archived status.",
+		description:
+			"List all tags (labels for categorizing entries). Returns IDs needed for filtering entries by tag.",
 		inputSchema: listTagsSchema,
 		annotations: { readOnlyHint: true },
 	},
@@ -140,7 +145,7 @@ server.registerTool(
 server.registerTool(
 	"get_tag",
 	{
-		description: "Retrieve a single tag by its UUID.",
+		description: "Get a single tag by ID.",
 		inputSchema: getTagSchema,
 		annotations: { readOnlyHint: true },
 	},

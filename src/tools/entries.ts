@@ -31,7 +31,10 @@ export async function handleCreateEntry(
 
 export async function handleGetEntry(
 	client: BulletClient,
-	params: { id: string; expand?: "collection" | "tags" },
+	params: {
+		id: string;
+		expand?: "collection" | "tags" | ("collection" | "tags")[];
+	},
 ): Promise<string> {
 	const entry = await client.getEntry(params.id, params.expand);
 	return formatEntry(entry);
