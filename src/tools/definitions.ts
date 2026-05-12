@@ -169,6 +169,68 @@ export const getTagSchema = {
 	id: z.string().describe("Tag ID (UUID). Get IDs from list_tags."),
 };
 
+export interface ToolResult<T = unknown> {
+	data: T;
+	text: string;
+}
+
+export const entrySchema = z.object({
+	id: z.string(),
+	title: z.string(),
+	kind: z.enum(["task", "note", "event"]),
+	start: z.string().nullable().optional(),
+	period: z.enum(["day", "week", "month", "year"]).optional(),
+	importance: z.number().nullable().optional(),
+	status: z.enum(["not_started", "completed", "cancelled"]).nullable(),
+	collection_id: z.string().nullable().optional(),
+	tag_ids: z.array(z.string()).optional(),
+	created_at: z.string(),
+	updated_at: z.string(),
+});
+
+export const collectionSchema = z.object({
+	id: z.string(),
+	title: z.string(),
+	color: z.string().nullable().optional(),
+	parent_id: z.string().nullable().optional(),
+	archived: z.boolean(),
+});
+
+export const tagSchema = z.object({
+	id: z.string(),
+	label: z.string(),
+	color: z.string().nullable().optional(),
+	archived: z.boolean(),
+});
+
+export const listEntriesOutputSchema = {
+	entries: z.array(entrySchema),
+	cursor: z.string().nullable(),
+	has_more: z.boolean(),
+};
+
+export const createEntryOutputSchema = { entry: entrySchema };
+export const getEntryOutputSchema = { entry: entrySchema };
+export const updateEntryOutputSchema = { entry: entrySchema };
+export const deleteEntryOutputSchema = {
+	deleted: z.boolean(),
+	id: z.string(),
+};
+
+export const listCurrentOutputSchema = {
+	current: z.array(entrySchema),
+	overdue: z.array(entrySchema),
+	period: z.string(),
+};
+
+export const listCollectionsOutputSchema = {
+	collections: z.array(collectionSchema),
+};
+export const getCollectionOutputSchema = { collection: collectionSchema };
+
+export const listTagsOutputSchema = { tags: z.array(tagSchema) };
+export const getTagOutputSchema = { tag: tagSchema };
+
 export interface ToolDefinition {
 	name: string;
 	description: string;

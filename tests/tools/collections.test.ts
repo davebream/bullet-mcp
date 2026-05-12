@@ -29,7 +29,7 @@ describe("collection tool handlers", () => {
 			const result = await handleListCollections(client, {});
 
 			expect(client.listCollections).toHaveBeenCalledWith({});
-			expect(result).toContain(COLLECTION_FIXTURE.title);
+			expect(result.text).toContain(COLLECTION_FIXTURE.title);
 		});
 
 		it("returns empty message when no collections", async () => {
@@ -39,7 +39,7 @@ describe("collection tool handlers", () => {
 
 			const result = await handleListCollections(client, {});
 
-			expect(result).toContain("No collections found");
+			expect(result.text).toContain("No collections found");
 		});
 
 		it("passes archived filter", async () => {
@@ -60,7 +60,7 @@ describe("collection tool handlers", () => {
 			});
 
 			expect(client.getCollection).toHaveBeenCalledWith(COLLECTION_FIXTURE.id);
-			expect(result).toContain(COLLECTION_FIXTURE.title);
+			expect(result.text).toContain(COLLECTION_FIXTURE.title);
 		});
 	});
 });

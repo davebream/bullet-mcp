@@ -8,17 +8,28 @@ import {
 	handleListCollections,
 } from "./tools/collections.js";
 import {
+	createEntryOutputSchema,
 	createEntrySchema,
+	deleteEntryOutputSchema,
 	deleteEntrySchema,
+	getCollectionOutputSchema,
 	getCollectionSchema,
+	getEntryOutputSchema,
 	getEntrySchema,
+	getTagOutputSchema,
 	getTagSchema,
+	listCollectionsOutputSchema,
 	listCollectionsSchema,
+	listCurrentOutputSchema,
 	listCurrentSchema,
+	listEntriesOutputSchema,
 	listEntriesSchema,
+	listTagsOutputSchema,
 	listTagsSchema,
+	updateEntryOutputSchema,
 	updateEntrySchema,
 } from "./tools/definitions.js";
+import type { ToolResult } from "./tools/definitions.js";
 import {
 	handleCreateEntry,
 	handleDeleteEntry,
@@ -46,16 +57,19 @@ const server = new McpServer({
 	version: API_VERSION,
 });
 
-function textResult(text: string, isError = false) {
-	return { content: [{ type: "text" as const, text }], isError };
-}
-
-async function withErrorHandling(fn: () => Promise<string>) {
+async function withErrorHandling(fn: () => Promise<ToolResult>) {
 	try {
-		return textResult(await fn());
+		const result = await fn();
+		return {
+			content: [{ type: "text" as const, text: result.text }],
+			structuredContent: result.data as Record<string, unknown>,
+		};
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
-		return textResult(`Error: ${message}`, true);
+		return {
+			content: [{ type: "text" as const, text: `Error: ${message}` }],
+			isError: true,
+		};
 	}
 }
 
@@ -65,6 +79,7 @@ server.registerTool(
 		description:
 			"List tasks, notes, and events from Bullet. Two modes: (1) use 'view' for presets (inbox=unscheduled, overdue=past-due), or (2) use period+date for calendar queries. Each mode has different valid filters — see parameter descriptions. Returns paginated results; use cursor for next page.",
 		inputSchema: listEntriesSchema,
+		outputSchema: listEntriesOutputSchema,
 		annotations: { readOnlyHint: true },
 	},
 	(params) => withErrorHandling(() => handleListEntries(client, params)),
@@ -76,6 +91,7 @@ server.registerTool(
 		description:
 			"Get scheduled entries for the current period plus any overdue items. Defaults to today. Use when the user asks what's on today, this week, this month, or wants a daily/weekly overview.",
 		inputSchema: listCurrentSchema,
+		outputSchema: listCurrentOutputSchema,
 		annotations: { readOnlyHint: true },
 	},
 	(params) => withErrorHandling(() => handleListCurrent(client, params)),
@@ -87,6 +103,7 @@ server.registerTool(
 		description:
 			"Create a task, note, or event in Bullet. Set 'start' to schedule it on a date/time, or omit 'start' to put it in the inbox. Tasks track completion status, notes don't, events support timezone-aware datetimes.",
 		inputSchema: createEntrySchema,
+		outputSchema: createEntryOutputSchema,
 	},
 	(params) => withErrorHandling(() => handleCreateEntry(client, params)),
 );
@@ -97,6 +114,7 @@ server.registerTool(
 		description:
 			"Get a single entry by ID with full details. Use expand to include the collection and/or tags inline instead of just IDs.",
 		inputSchema: getEntrySchema,
+		outputSchema: getEntryOutputSchema,
 		annotations: { readOnlyHint: true },
 	},
 	(params) => withErrorHandling(() => handleGetEntry(client, params)),
@@ -107,6 +125,7 @@ server.registerTool(
 	{
 		description: "Update an entry's title.",
 		inputSchema: updateEntrySchema,
+		outputSchema: updateEntryOutputSchema,
 		annotations: { idempotentHint: true },
 	},
 	(params) => withErrorHandling(() => handleUpdateEntry(client, params)),
@@ -118,6 +137,7 @@ server.registerTool(
 		description:
 			"Soft-delete an entry. Idempotent — succeeds even if already deleted.",
 		inputSchema: deleteEntrySchema,
+		outputSchema: deleteEntryOutputSchema,
 		annotations: { destructiveHint: true, idempotentHint: true },
 	},
 	(params) => withErrorHandling(() => handleDeleteEntry(client, params)),
@@ -129,6 +149,7 @@ server.registerTool(
 		description:
 			"List all collections (folders for organizing entries). Returns IDs needed for filtering entries by collection.",
 		inputSchema: listCollectionsSchema,
+		outputSchema: listCollectionsOutputSchema,
 		annotations: { readOnlyHint: true },
 	},
 	(params) => withErrorHandling(() => handleListCollections(client, params)),
@@ -139,6 +160,7 @@ server.registerTool(
 	{
 		description: "Get a single collection by ID.",
 		inputSchema: getCollectionSchema,
+		outputSchema: getCollectionOutputSchema,
 		annotations: { readOnlyHint: true },
 	},
 	(params) => withErrorHandling(() => handleGetCollection(client, params)),
@@ -150,6 +172,7 @@ server.registerTool(
 		description:
 			"List all tags (labels for categorizing entries). Returns IDs needed for filtering entries by tag.",
 		inputSchema: listTagsSchema,
+		outputSchema: listTagsOutputSchema,
 		annotations: { readOnlyHint: true },
 	},
 	(params) => withErrorHandling(() => handleListTags(client, params)),
@@ -160,6 +183,7 @@ server.registerTool(
 	{
 		description: "Get a single tag by ID.",
 		inputSchema: getTagSchema,
+		outputSchema: getTagOutputSchema,
 		annotations: { readOnlyHint: true },
 	},
 	(params) => withErrorHandling(() => handleGetTag(client, params)),

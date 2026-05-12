@@ -38,7 +38,7 @@ describe("entry tool handlers", () => {
 			const result = await handleListEntries(client, { view: "inbox" });
 
 			expect(client.listEntries).toHaveBeenCalledWith({ view: "inbox" });
-			expect(result).toContain(ENTRY_FIXTURE.title);
+			expect(result.text).toContain(ENTRY_FIXTURE.title);
 		});
 
 		it("returns empty message when no entries found", async () => {
@@ -50,7 +50,7 @@ describe("entry tool handlers", () => {
 
 			const result = await handleListEntries(client, {});
 
-			expect(result).toContain("No entries found");
+			expect(result.text).toContain("No entries found");
 		});
 
 		it("includes pagination info when has_more is true", async () => {
@@ -64,7 +64,7 @@ describe("entry tool handlers", () => {
 
 			const result = await handleListEntries(client, {});
 
-			expect(result).toContain("next_cursor_123");
+			expect(result.text).toContain("next_cursor_123");
 		});
 	});
 
@@ -80,8 +80,8 @@ describe("entry tool handlers", () => {
 			const result = await handleCreateEntry(client, params);
 
 			expect(client.createEntry).toHaveBeenCalledWith(params);
-			expect(result).toContain("Buy groceries");
-			expect(result).toContain(ENTRY_FIXTURE.id);
+			expect(result.text).toContain("Buy groceries");
+			expect(result.text).toContain(ENTRY_FIXTURE.id);
 		});
 	});
 
@@ -92,7 +92,7 @@ describe("entry tool handlers", () => {
 			const result = await handleGetEntry(client, { id: ENTRY_FIXTURE.id });
 
 			expect(client.getEntry).toHaveBeenCalledWith(ENTRY_FIXTURE.id, undefined);
-			expect(result).toContain(ENTRY_FIXTURE.title);
+			expect(result.text).toContain(ENTRY_FIXTURE.title);
 		});
 
 		it("passes expand parameter", async () => {
@@ -122,7 +122,7 @@ describe("entry tool handlers", () => {
 			expect(client.updateEntry).toHaveBeenCalledWith(ENTRY_FIXTURE.id, {
 				title: "Updated",
 			});
-			expect(result).toContain("Updated");
+			expect(result.text).toContain("Updated");
 		});
 	});
 
@@ -133,7 +133,7 @@ describe("entry tool handlers", () => {
 			const result = await handleDeleteEntry(client, { id: ENTRY_FIXTURE.id });
 
 			expect(client.deleteEntry).toHaveBeenCalledWith(ENTRY_FIXTURE.id);
-			expect(result).toContain(ENTRY_FIXTURE.id);
+			expect(result.text).toContain(ENTRY_FIXTURE.id);
 		});
 	});
 
@@ -196,10 +196,10 @@ describe("entry tool handlers", () => {
 			const result = await handleListCurrent(client, {});
 
 			expect(client.listEntries).toHaveBeenCalledTimes(2);
-			expect(result).toContain("Today task");
-			expect(result).toContain("Overdue task");
-			expect(result).toContain("Today");
-			expect(result).toContain("Overdue");
+			expect(result.text).toContain("Today task");
+			expect(result.text).toContain("Overdue task");
+			expect(result.text).toContain("Today");
+			expect(result.text).toContain("Overdue");
 		});
 
 		it("deduplicates entries appearing in both results", async () => {
@@ -226,7 +226,7 @@ describe("entry tool handlers", () => {
 
 			const result = await handleListCurrent(client, {});
 
-			const matches = result.match(/Shared/g);
+			const matches = result.text.match(/Shared/g);
 			expect(matches).toHaveLength(1);
 		});
 
@@ -239,7 +239,7 @@ describe("entry tool handlers", () => {
 
 			const result = await handleListCurrent(client, {});
 
-			expect(result).toContain("Nothing for today.");
+			expect(result.text).toContain("Nothing for today.");
 		});
 	});
 });

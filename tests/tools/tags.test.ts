@@ -26,7 +26,7 @@ describe("tag tool handlers", () => {
 			const result = await handleListTags(client, {});
 
 			expect(client.listTags).toHaveBeenCalledWith({});
-			expect(result).toContain(TAG_FIXTURE.label);
+			expect(result.text).toContain(TAG_FIXTURE.label);
 		});
 
 		it("returns empty message when no tags", async () => {
@@ -36,7 +36,7 @@ describe("tag tool handlers", () => {
 
 			const result = await handleListTags(client, {});
 
-			expect(result).toContain("No tags found");
+			expect(result.text).toContain("No tags found");
 		});
 
 		it("passes archived filter", async () => {
@@ -55,7 +55,7 @@ describe("tag tool handlers", () => {
 			const result = await handleGetTag(client, { id: TAG_FIXTURE.id });
 
 			expect(client.getTag).toHaveBeenCalledWith(TAG_FIXTURE.id);
-			expect(result).toContain(TAG_FIXTURE.label);
+			expect(result.text).toContain(TAG_FIXTURE.label);
 		});
 	});
 });
