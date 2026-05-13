@@ -178,12 +178,12 @@ export const entrySchema = z.object({
 	id: z.string(),
 	title: z.string(),
 	kind: z.enum(["task", "note", "event"]),
-	start: z.string().nullable().optional(),
-	period: z.enum(["day", "week", "month", "year"]).optional(),
-	importance: z.number().nullable().optional(),
-	status: z.enum(["not_started", "completed", "cancelled"]).nullable(),
-	collection_id: z.string().nullable().optional(),
-	tag_ids: z.array(z.string()).optional(),
+	start: z.string().nullable(),
+	period: z.enum(["day", "week", "month", "year"]).nullable(),
+	importance: z.number().nullable(),
+	status: z.string().nullable(),
+	collection_id: z.string().nullable(),
+	tag_ids: z.array(z.string()),
 	created_at: z.string(),
 	updated_at: z.string(),
 });
@@ -191,15 +191,15 @@ export const entrySchema = z.object({
 export const collectionSchema = z.object({
 	id: z.string(),
 	title: z.string(),
-	color: z.string().nullable().optional(),
-	parent_id: z.string().nullable().optional(),
+	color: z.string().nullable(),
+	parent_id: z.string().nullable(),
 	archived: z.boolean(),
 });
 
 export const tagSchema = z.object({
 	id: z.string(),
 	label: z.string(),
-	color: z.string().nullable().optional(),
+	color: z.string().nullable(),
 	archived: z.boolean(),
 });
 

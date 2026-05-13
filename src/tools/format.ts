@@ -1,11 +1,8 @@
 import type { Collection, Entry, Tag } from "../client/types.js";
 
 export function formatEntry(entry: Entry): string {
-	const parts = [
-		`[${entry.kind}] ${entry.title}`,
-		`  id: ${entry.id}`,
-		`  status: ${entry.status}`,
-	];
+	const parts = [`[${entry.kind}] ${entry.title}`, `  id: ${entry.id}`];
+	if (entry.status != null) parts.push(`  status: ${entry.status}`);
 	if (entry.start) parts.push(`  start: ${entry.start}`);
 	if (entry.period) parts.push(`  period: ${entry.period}`);
 	if (entry.importance) parts.push(`  importance: ${entry.importance}`);

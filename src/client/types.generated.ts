@@ -11,7 +11,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List entries with optional filtering and pagination */
+        /**
+         * List entries with optional filtering and pagination
+         * @description List entries with optional view and filters.
+         *
+         *     **Views** (inbox, overdue) are self-contained presets. **Filters** (period, status, kind, collection, tag) narrow results further. Some combinations are invalid:
+         *
+         *     | Filter | inbox | overdue | (none) |
+         *     |--------|-------|---------|--------|
+         *     | period | no | no | yes |
+         *     | status | yes | no | yes |
+         *     | kind | yes | no | yes |
+         *     | collection | no | yes | yes |
+         *     | tag | no | yes | yes |
+         */
         get: operations["listEntries"];
         put?: never;
         /** Create a new entry */
@@ -119,16 +132,20 @@ export interface components {
             title: string;
             /** @enum {string} */
             kind: "task" | "note" | "event";
-            /** @description ISO date or datetime; null means inbox */
-            start?: string | null;
-            /** @enum {string} */
-            period?: "day" | "week" | "month" | "year";
-            importance?: number | null;
-            /** @enum {string} */
-            status: "not_started" | "completed" | "cancelled";
+            /** @description Schedule start. Format varies: YYYY-MM-DD (day/week), YYYY-MM (month), YYYY (year), ISO 8601 datetime with TZ (timed event), local datetime without TZ (timed task/note). Null for inbox entries. */
+            start: string | null;
+            /**
+             * @description Schedule period: day, week, month, or year. Null for timed entries and inbox.
+             * @enum {string|null}
+             */
+            period: "day" | "week" | "month" | "year" | null;
+            /** @description Importance level (1-3) */
+            importance: number | null;
+            /** @description Task status. Null for notes and events. */
+            status: string | null;
             /** Format: uuid */
-            collection_id?: string | null;
-            tag_ids?: string[];
+            collection_id: string | null;
+            tag_ids: string[];
             collection?: components["schemas"]["Collection"];
             tags?: components["schemas"]["Tag"][];
             /** Format: date-time */
@@ -140,16 +157,16 @@ export interface components {
             /** Format: uuid */
             id: string;
             title: string;
-            color?: string | null;
+            color: string | null;
             /** Format: uuid */
-            parent_id?: string | null;
+            parent_id: string | null;
             archived: boolean;
         };
         Tag: {
             /** Format: uuid */
             id: string;
             label: string;
-            color?: string | null;
+            color: string | null;
             archived: boolean;
         };
         PaginatedResponse: {
@@ -188,7 +205,7 @@ export interface operations {
                 view?: "inbox" | "overdue";
                 /** @description Valid only without views */
                 period?: "day" | "week" | "month" | "year";
-                /** @description YYYY-MM-DD, YYYY-MM, or YYYY */
+                /** @description Period anchor date. YYYY-MM-DD for day/week, YYYY-MM for month, YYYY for year. Defaults to current date/month/year if omitted. */
                 date?: string;
                 status?: "not_started" | "completed" | "cancelled";
                 kind?: "task" | "note" | "event";
